@@ -12,6 +12,9 @@ import requests
 from inventory_accuracy.models import SQ00
 
 # Create your views here.
+def cost(request):
+    return render(request,'inventory_accuracy\cost.html') 
+    
 def upload_files(request):
     #get current year and week
     year=datetime.datetime.today().isocalendar()[0]
