@@ -19,6 +19,8 @@ def upload_files(request):
     #get current year and week
     year=datetime.datetime.today().isocalendar()[0]
     week=datetime.datetime.today().isocalendar()[1]
+
+
     conn = psycopg2.connect(host='localhost',dbname='db_dashboard',user='postgres',password='Mounaruto',port='5432')
     # file= r"C:\Users\DELL\Downloads\2022 07 12 Z_LISTE_INV.xlsx"
     file= r"C:\Users\DELL\2022 07 12 Z_LISTE_INV.xlsx"
@@ -65,8 +67,19 @@ def inventory_accuracy_results(sq00_data):
     # Pour un article compté : Stock accuracy = 100% si l’écart < 1% et l’écart < 250€ sinon la réf est considéré en écart
     df['stock_accuracy']=np.where ( ( (df['type_of_measurement']=='counted') & (df['deviation'] < 0.01) & (df['deviation_cost_euro']< 250)) , 1 , df['stock_accuracy'] )
 
+    #extract year and week from date_catchment
+    df['week_date_cpt']=df['date_catchment'].dt.isocalendar().week
+    df['year_date_cpt']=df['date_catchment'].dt.isocalendar().year
+
+    #create dataframe of articles that their deviation is null
+    df_ecart=df[df['deviation']!=0]
     #deviation cost per division
-    inventory_accuracy_results.cost_per_division=df.groupby(  ['year','week','division'])['deviation_cost_euro'].sum().reset_index() 
+    cost_per_division=df.groupby(['year_date_cpt','week_date_cpt','division'])['deviation_cost_euro'].sum().reset_index() 
+    print(cost_per_division)
+    #deviation cost per division according to date catchment
+    cost_per_division_ecart=df_ecart.groupby(['year_date_cpt','week_date_cpt','division'])['deviation_cost_euro'].sum().reset_index() 
+    print(cost_per_division_ecart)
+
     inventory_accuracy_results.total_deviation_cost=df['deviation_cost'].sum()
     print(inventory_accuracy_results.cost_per_division)
     print(inventory_accuracy_results.total_deviation_cost)
